@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex">
+<title>Doughnate – Endometriózis játék</title>
+<link rel="stylesheet" href="vendor/fonts/betuk.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- KEZDŐKÉPERNYŐ -->
+  <section id="kepernyo-vonzo" class="kepernyo aktiv" aria-label="Kezdőképernyő">
+    <button id="diag-sarok" class="diag-sarok" aria-hidden="true" tabindex="-1"></button>
+    <div class="fejlec">
+      <img class="logo logo-alapitvany" alt="" hidden>
+      <img class="logo logo-rendezveny" alt="" hidden>
+    </div>
+    <div class="vonzo-tartalom">
+      <div class="vonzo-hero">
+        <div class="cimke" id="vonzo-cimke"></div>
+        <h1 id="vonzo-cim" class="vonzo-cim"></h1>
+        <p class="vonzo-alcim" id="vonzo-alcim"></p>
+      </div>
+      <div class="pakli vonzo-pakli" aria-live="polite">
+        <div class="pakli-hat"></div>
+        <div class="pakli-elo vonzo-teny" id="vonzo-teny">
+          <div class="teny-kiemeles" id="teny-kiemeles"></div>
+          <div class="teny-szoveg-doboz"><div class="teny-szoveg" id="teny-szoveg"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ives-sav">
+      <div class="ives-sav-belso">
+        <span class="gomb-forma gomb-sarga pulzal" id="vonzo-felhivas"></span>
+        <span class="meta" id="vonzo-meta"></span>
+      </div>
+      <div class="rendezveny" id="rendezveny-nev"></div>
+    </div>
+  </section>
+
+  <!-- JÁTÉK -->
+  <section id="kepernyo-jatek" class="kepernyo" aria-label="Játék">
+    <div class="haladas" id="haladas" aria-hidden="true"></div>
+    <div class="jatek-ter pakli" id="jatek-ter-kulso">
+      <div class="pakli-hat"></div>
+      <div class="jatek-kartyahely" id="jatek-ter"><!-- ide kerül a kártya vagy a csúszka --></div>
+    </div>
+    <div class="valasz-gombok" id="valasz-gombok">
+      <button class="nagy-gomb gomb-bal" id="gomb-bal"></button>
+      <button class="nagy-gomb gomb-jobb" id="gomb-jobb"></button>
+    </div>
+    <!-- Magyarázat -->
+    <div class="magyarazat" id="magyarazat" hidden>
+      <div class="magyarazat-belso">
+        <div class="visszajelzes-sor">
+          <span class="visszajelzes-ikon" id="visszajelzes-ikon" aria-hidden="true"></span>
+          <div class="visszajelzes" id="visszajelzes"></div>
+        </div>
+        <p class="helyes-valasz" id="helyes-valasz"></p>
+        <p class="magyarazat-szoveg" id="magyarazat-szoveg"></p>
+        <p class="orvos-lablec" id="orvos-lablec" hidden></p>
+        <p class="forras" id="forras"></p>
+        <button class="tovabb gomb-forma gomb-sarga" id="tovabb" aria-label="Tovább">
+          <span class="tovabb-szoveg">Tovább →</span>
+          <span class="idosav"><span class="idosav-toltes" id="idosav-toltes"></span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ZÁRÓKÉPERNYŐ -->
+  <section id="kepernyo-zaro" class="kepernyo" aria-label="Záróképernyő">
+    <div class="cimke" id="zaro-cimke"></div>
+    <h1 class="zaro-cim" id="zaro-cim"></h1>
+    <p class="zaro-szoveg" id="zaro-szoveg"></p>
+    <div class="qr-racs" id="qr-racs"></div>
+    <button class="nagy-gomb gomb-sarga" id="gomb-uj-kor"></button>
+    <p class="jogi" id="jogi-zaro"></p>
+  </section>
+
+  <!-- TÉTLENSÉG -->
+  <div class="tetlen" id="tetlen" hidden>
+    <div class="tetlen-doboz">
+      <div class="tetlen-kerdes" id="tetlen-kerdes"></div>
+      <div class="tetlen-szamlalo" id="tetlen-szamlalo"></div>
+      <button class="nagy-gomb gomb-sarga" id="tetlen-gomb"></button>
+    </div>
+  </div>
+
+  <!-- DIAGNOSZTIKA (rejtett) -->
+  <div class="diag" id="diag" hidden>
+    <pre id="diag-szoveg"></pre>
+    <div class="diag-gombok">
+      <button id="diag-frissit">Tartalom frissítése most</button>
+      <button id="diag-kuld">Statisztika küldése most</button>
+      <button id="diag-bezar">Bezárás</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="content/alap_tartalom.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="js/csv.js"></script>
+<script src="js/tartalom.js"></script>
+<script src="js/statisztika.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
