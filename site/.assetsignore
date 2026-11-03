@@ -1,0 +1,6 @@
+# Ezeket a Cloudflare nem teszi nyilvánossá (a játékhoz nem kellenek)
+README.md
+apps-script
+tools
+assets/OLVASS_EL.txt
+.DS_Store
