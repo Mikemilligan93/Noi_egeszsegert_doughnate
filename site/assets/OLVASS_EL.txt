@@ -1,0 +1,1 @@
+Ide jönnek a logók (pl. alapitvany.svg). Az útvonalat a config.js „marka” részében add meg.
