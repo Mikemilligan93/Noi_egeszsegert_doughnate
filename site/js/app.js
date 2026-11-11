@@ -111,7 +111,10 @@
     document.querySelectorAll(".kepernyo").forEach(s => s.classList.toggle("aktiv", s.id === "kepernyo-" + nev));
     tetlenRejt();
     utolsoErintes = Date.now();
+    helyreGorget();
   }
+  // iPaden a képernyő-billentyűzet feltolja az egész oldalt, és bezárás után néha úgy is marad – visszaállítjuk.
+  function helyreGorget() { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); }
 
   /* ================= KEZDŐKÉPERNYŐ ================= */
   let tenyIndex = 0, tenyTimer = null, tenySorrend = [];
@@ -162,7 +165,9 @@
   }
   const tenyAt = i => tenySorrend[i % tenySorrend.length];
   // Kezdő állapot: a felső tény, alatta a következő kártya (üresen) várakozik.
+  let tenyNemzedek = 0;
   function tenyPakliEpit() {
+    tenyNemzedek++;
     const p = $("teny-pakli"); p.innerHTML = "";
     p.style.visibility = tenySorrend.length ? "" : "hidden";
     if (!tenySorrend.length) return;
@@ -179,7 +184,9 @@
     tenyIndex++;
     const dontes = kirepit(felso, tenyIrany, null);
     tenyIrany = -tenyIrany;
+    const nemzedek = tenyNemzedek;
     setTimeout(() => {
+      if (nemzedek !== tenyNemzedek) return;   // közben újraépült a pakli (pl. tartalomfrissítés, visszatérés a kezdőképernyőre)
       kov.classList.remove("is-next"); kov.classList.add("is-top");
       const uj = tenyKartya(tenyAt(tenyIndex + 1)); p.insertBefore(uj, p.firstChild); tenyIllesztes(uj); pakliba(uj);
     }, kevesMozgas ? 0 : dontes + MOZGAS.kovKesleltetes);
@@ -191,7 +198,8 @@
   function korabbiOlvas() { try { return JSON.parse(localStorage.getItem(KORABBI_KULCS) || "[]"); } catch (e) { return korabbiMem; } }
   let korabbiMem = [];
   function korabbiIr(korIdk) {
-    const n = Math.max(0, (CFG.rendszer && CFG.rendszer.kerulendoKorok) || 1);
+    const beall = CFG.rendszer && Number(CFG.rendszer.kerulendoKorok);
+    const n = isFinite(beall) && beall >= 0 ? Math.floor(beall) : 1;   // 0 = nem kerül semmit
     const lista = korabbiOlvas(); lista.push(korIdk); while (lista.length > n) lista.shift();
     korabbiMem = lista;
     try { localStorage.setItem(KORABBI_KULCS, JSON.stringify(lista)); } catch (e) {}
@@ -373,8 +381,7 @@
     window.DStat.rogzit({ kor_azonosito: korId, esemeny: "valasz", elem_id: k.id, elem_tipus: k.tipus, valasz: kod, helyes: helyes ? "IGEN" : "NEM" });
     const o = oldalak(k.tipus);
     const helyesFelirat = (o.igen.kod === k.helyes ? o.igen : o.nem).felirat;
-    setTimeout(() => magyarazatMutat({ helyes, helyesSor: "Helyes válasz: " + helyesFelirat, szoveg: k.magyarazat, forras: k.forras, orvos: k.tipus === "normalis_orvos" }),
-      kevesMozgas ? 0 : dontes + MOZGAS.kovKesleltetes + 100);
+    magyarazatKesobb({ helyes, helyesSor: "Helyes válasz: " + helyesFelirat, szoveg: k.magyarazat, forras: k.forras, orvos: k.tipus === "normalis_orvos" }, dontes);
   }
 
   /* ---------- CSÚSZKA ---------- */
@@ -428,8 +435,8 @@
         window.DStat.rogzit({ kor_azonosito: korId, esemeny: "valasz", elem_id: c.id, elem_tipus: "csuszka", valasz: String(ertek), helyes: helyes ? "IGEN" : "NEM" });
         const egys = c.egyseg ? " " + c.egyseg : "";
         const dontes = kirepit(doboz, 1, null);   // a tipp is „elküldi” a kártyát, mint egy gombnyomás
-        setTimeout(() => magyarazatMutat({ helyes, helyesSor: `${F("csuszka_helyes_ertek")} ${fmt(c.helyes)}${egys} · a te tipped: ${fmt(ertek)}${egys}`,
-          szoveg: c.magyarazat, forras: c.forras, orvos: false }), kevesMozgas ? 0 : dontes + MOZGAS.kovKesleltetes + 100);
+        magyarazatKesobb({ helyes, helyesSor: `${F("csuszka_helyes_ertek")} ${fmt(c.helyes)}${egys} · a te tipped: ${fmt(ertek)}${egys}`,
+          szoveg: c.magyarazat, forras: c.forras, orvos: false }, dontes);
       };
     };
     return doboz;
@@ -437,6 +444,12 @@
 
   /* ---------- MAGYARÁZAT ---------- */
   let tovabbTimer = null;
+  // A kártya kirepülése után jelenik meg. Ha közben kiléptek, vagy már másik kör / kérdés fut, nem jelenik meg
+  // (különben egy gyors „vissza + új kör” után az előző kártya magyarázata ugrana az új kártyára).
+  function magyarazatKesobb(adat, dontes) {
+    const k = korId, l = lepes;
+    setTimeout(() => { if (k === korId && l === lepes && valaszolt) magyarazatMutat(adat); }, kevesMozgas ? 0 : dontes + MOZGAS.kovKesleltetes + 100);
+  }
   function magyarazatMutat({ helyes, helyesSor, szoveg, forras, orvos }) {
     if (kepernyo !== "jatek") return;   // közben lejárt a tétlenségi idő
     const m = $("magyarazat");
@@ -480,7 +493,7 @@
   function kezdokepernyore() {
     clearTimeout(tovabbTimer);
     $("magyarazat").hidden = true;
-    felsoLap = null;
+    felsoLap = null; korId = "";
     vonzoInditas();
   }
   $("home-logo").addEventListener("click", e => { e.stopPropagation(); kezdokepernyore(); });
@@ -507,7 +520,7 @@
     for (const z of T.zaro) {
       const d = el("div", "qr-elem");
       const kep = el("div", "qr-kep");
-      kep.innerHTML = qrSvg(z.url);
+      qrRajzol(kep, z.url);
       d.appendChild(kep);
       const szoveg = el("div", "qr-szoveg");
       if (z.kiemelt) szoveg.appendChild(el("div", "qr-kiemelt", z.kiemelt));
@@ -560,12 +573,12 @@
     clearTimeout(zaroTimer);
     zaroTimer = setTimeout(() => { if (kepernyo === "zaro") vonzoInditas(); }, B("zarokepernyo_ido") * 1000);
   }
-  function qrSvg(url) {
+  function qrRajzol(kep, url) {
     try {
       const q = window.qrcode(0, "M");
       q.addData(url); q.make();
-      return q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
-    } catch (e) { return `<div class="qr-hiba">${url}</div>`; }
+      kep.innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    } catch (e) { kep.textContent = ""; kep.appendChild(el("div", "qr-hiba", url)); }   // a link a táblázatból jön: szövegként, nem HTML-ként
   }
   $("gomb-uj-kor").addEventListener("click", e => { e.stopPropagation(); clearTimeout(zaroTimer); korInditas(); });
 
@@ -621,6 +634,10 @@
     hirlevelTimer = setTimeout(() => { if (kepernyo === "hirlevel") { hirlevelVissza = "vonzo"; hirlevelBezar(); } }, 6000);
   });
   $("hirlevel-megse").addEventListener("click", hirlevelBezar);
+  $("hirlevel-urlap").addEventListener("focusout", () => setTimeout(() => {
+    const a = document.activeElement;
+    if (!(a && a.closest && a.closest("#hirlevel-urlap"))) helyreGorget();   // egyik mező sincs fókuszban: a billentyűzet bezárult
+  }, 120));
   $("hirlevel-koszonet").addEventListener("click", () => { hirlevelVissza = "vonzo"; hirlevelBezar(); });
   $("hirlevel-nyit-vonzo").addEventListener("click", e => { e.stopPropagation(); hirlevelMutat("vonzo"); });
   $("hirlevel-nyit-zaro").addEventListener("click", e => { e.stopPropagation(); hirlevelMutat("zaro"); });
@@ -652,6 +669,8 @@
     utolsoErintes = Date.now();
     if (kepernyo === "zaro") zaroIdozit();
   }, true);
+  // a képernyő-billentyűzeten gépelés és a csúszka hosszú húzása is tevékenység (nem mindig jár vele pointerdown / keydown)
+  document.addEventListener("input", () => { utolsoErintes = Date.now(); }, true);
 
   /* ================= INDÍTÁS ÉRINTÉSRE ================= */
   $("kepernyo-vonzo").addEventListener("click", () => { if (kepernyo === "vonzo") korInditas(); });
@@ -716,13 +735,14 @@
     try { if ("wakeLock" in navigator && !wl) { wl = await navigator.wakeLock.request("screen"); wl.addEventListener("release", () => { wl = null; }); } } catch (e) {}
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wakeLock(); });
+  wakeLock();   // már a kezdőképernyőn is (nem csak az első kör indulásakor)
 
   /* ================= TÁJOLÁS / MÉRETVÁLTÁS ================= */
   let atmeretTimer = null;
   window.addEventListener("resize", () => {
     clearTimeout(atmeretTimer);
     atmeretTimer = setTimeout(() => {
-      document.querySelectorAll(".kartya-szoveg").forEach(s => illeszt(s, (s.closest(".csuszka-kartya") ? 5.2 : 6) * vmin(), 2.6 * vmin()));
+      document.querySelectorAll("#jatek-ter .lap").forEach(l => l._illeszt && l._illeszt());
       if (kepernyo === "vonzo") tenyekUjraIllesztese();
       if (kepernyo === "zaro") qrIllesztes();
       if (!$("magyarazat").hidden) magyarazatIllesztes();
@@ -732,16 +752,22 @@
 
   /* ================= TARTALOMFRISSÍTÉS ================= */
   let frissitesTimer = null;
+  // amit a kezdőképernyő mutat: tények, feliratok, a kérdések száma és a tényváltás üteme
+  const vonzoLenyomat = t => JSON.stringify([t.tenyek, t.feliratok, t.beallitasok, t.kartyak.length, t.csuszkak.length]);
   async function frissites() {
-    await window.DTartalom.frissit();
-    if (kepernyo === "vonzo") {
-      const regiTeny = JSON.stringify(T.tenyek), regiF = JSON.stringify(T.feliratok);
-      T = window.DTartalom.aktualis();
-      if (regiTeny !== JSON.stringify(T.tenyek) || regiF !== JSON.stringify(T.feliratok)) vonzoInditas();
-    }
     clearTimeout(frissitesTimer);
-    frissitesTimer = setTimeout(frissites, Math.max(1, B("tartalom_frissites")) * 60 * 1000);
+    try {
+      await window.DTartalom.frissit();
+      if (kepernyo === "vonzo") {
+        const regi = vonzoLenyomat(T);
+        T = window.DTartalom.aktualis();
+        if (regi !== vonzoLenyomat(T)) vonzoInditas();
+      }
+    } catch (e) { /* a következő körben újra próbáljuk */ }
+    clearTimeout(frissitesTimer);
+    frissitesTimer = setTimeout(frissites, Math.max(1, B("tartalom_frissites") || 5) * 60 * 1000);
   }
+  window.addEventListener("online", frissites);   // amint visszajön a wifi, nem várjuk ki a következő időzített frissítést
 
   /* ================= DIAGNOSZTIKA ================= */
   if (CFG.rendszer && CFG.rendszer.diagnosztika) {

@@ -65,6 +65,8 @@ A játék minden válasz és minden befejezett kör után ír egy sort a táblá
 
 > **Ha később módosítod a Code.gs-t:** Telepítés → Telepítések kezelése → ceruza → Verzió: *Új verzió* → Telepítés. Így az URL nem változik.
 
+> **Visszaigazolt küldés:** a tablet csak akkor törli a nála várakozó sorokat, ha az Apps Script „ok” választ adott. Ha a fogadó hibát jelez (pl. rossz a telepítés hozzáférése), a sorok a tableten maradnak, percenként újrapróbálja, és a diagnosztika kiírja az utolsó hibát. A véletlenül kétszer megérkező sorokat az Apps Script kiszűri. Ha hiányzik a *Statisztika* fül, a kód létrehozza.
+
 > **Tudnivaló:** az URL a nyilvános kódban szerepel, így elvileg bárki küldhet bele szemét sorokat. Ezt alacsony kockázatnak tekintettük; a kód csak az ismert eseménytípusokat fogadja, a hibás e-mail-címeket eldobja, és levágja a túl hosszú szövegeket.
 
 ### Hírlevél-feliratkozás
@@ -173,7 +175,8 @@ Kikapcsolható: `config.js` → `rendszer.diagnosztika: false`.
 | Diagnosztika: „nem CSV (HTML jött)” | A fül nincs közzétéve, vagy nem CSV formátumban. Ismételd meg a 2/4. lépést. |
 | Diagnosztika: „hiányzó oszlop(ok)” | Átírták vagy törölték az első sor egyik oszlopnevét. Állítsd vissza a sablon szerint. |
 | A módosítás nem jelenik meg | Várj 5–10 percet, vagy használd a diagnosztika *Tartalom frissítése most* gombját. Kör közben nem frissül. |
-| Nem jönnek sorok a Statisztika fülre | Ellenőrizd az URL-t (…/exec), a telepítés „Bárki” hozzáférését, és hogy a fül neve pontosan *Statisztika*. |
+| Nem jönnek sorok a Statisztika fülre | Nézd meg a diagnosztikát: kiírja, hány sor vár és mi volt az utolsó hiba. Ellenőrizd az URL-t (…/exec), a telepítés „Bárki” hozzáférését, és hogy a Code.gs legfrissebb változata van-e telepítve (új verzióként). A sorok addig a tableten várnak, nem vesznek el. |
+| Kicserélted vagy kivetted a táblázat linkjét, de a régi tartalom látszik | A megjegyzett tartalom csak ahhoz a linkhez érvényes, amelyikről készült; töltsd újra az oldalt a tableten. |
 
 ---
 

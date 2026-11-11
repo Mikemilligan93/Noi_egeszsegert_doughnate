@@ -14,6 +14,23 @@
   /* mozgás – a Módszermatch görbéi */
   --ease: cubic-bezier(.2, .8, .2, 1);
   --ease-vissza: cubic-bezier(.34, 1.56, .64, 1);
+  /* áttetsző színváltozatok – régebbi iPaden (Safari 16.2 előtt) nincs color-mix(), ott ezek a rögzített értékek élnek */
+  --sotet-22: rgba(0, 62, 59, .22); --sotet-45: rgba(0, 62, 59, .45); --sotet-35: rgba(0, 62, 59, .35); --sotet-14: rgba(0, 62, 59, .14); --sotet-70: rgba(0, 62, 59, .7); --felulet-70: rgba(255, 255, 255, .7); --sarga-70: rgba(239, 195, 17, .7); --hatter-88: rgba(233, 230, 221, .88); --sotet-szoveg-75: rgba(255, 255, 255, .75); --sotet-szoveg-70: rgba(255, 255, 255, .7);
+}
+/* ahol van color-mix(), a config.js színeiből számolódnak */
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+  :root {
+    --sotet-22: color-mix(in srgb, var(--sotet) 22%, transparent);
+    --sotet-45: color-mix(in srgb, var(--sotet) 45%, transparent);
+    --sotet-35: color-mix(in srgb, var(--sotet) 35%, transparent);
+    --sotet-14: color-mix(in srgb, var(--sotet) 14%, transparent);
+    --sotet-70: color-mix(in srgb, var(--sotet) 70%, transparent);
+    --felulet-70: color-mix(in srgb, var(--felulet) 70%, transparent);
+    --sarga-70: color-mix(in srgb, var(--sarga) 70%, transparent);
+    --hatter-88: color-mix(in srgb, var(--hatter) 88%, transparent);
+    --sotet-szoveg-75: color-mix(in srgb, var(--sotet-szoveg) 75%, transparent);
+    --sotet-szoveg-70: color-mix(in srgb, var(--sotet-szoveg) 70%, transparent);
+  }
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -81,7 +98,7 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 /* logók: egymás mellett, vékony elválasztóval */
 .logo-sor { display: flex; align-items: center; gap: 3.2vmin; }
 .logo-sor .logo { display: block; height: var(--logo-mag, 8vmin); width: auto; max-width: 40vw; object-fit: contain; }
-.logo-sor .logo + .logo { padding-left: 3.2vmin; border-left: 1px solid color-mix(in srgb, var(--sotet) 22%, transparent); }
+.logo-sor .logo + .logo { padding-left: 3.2vmin; border-left: 1px solid var(--sotet-22); }
 .fejlec.logo-sor { --logo-mag: max(7.5vmin, 44px); }
 /* a záróképernyő sötét hátterén fehér sávon, hogy a színes logók is jól látsszanak */
 .logo-sav { --logo-mag: calc(max(6vmin, 34px) * var(--z-skala, 1)); background: var(--felulet); padding: 1.6vmin 3vmin; border-radius: 0 var(--gomb-sarok) 0 var(--gomb-sarok); }
@@ -136,8 +153,8 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 .kis-vissza {
   justify-self: end; display: inline-flex; align-items: center; gap: .5em; padding: .55em 1em; white-space: nowrap;
   font-size: max(2.1vmin, 13px); font-weight: 600; color: var(--sotet);
-  border-radius: 0 var(--gomb-sarok) 0 var(--gomb-sarok); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--sotet) 45%, transparent);
-  background: color-mix(in srgb, var(--felulet) 70%, transparent); transition: transform .18s var(--ease-vissza), background-color .2s;
+  border-radius: 0 var(--gomb-sarok) 0 var(--gomb-sarok); box-shadow: inset 0 0 0 1.5px var(--sotet-45);
+  background: var(--felulet-70); transition: transform .18s var(--ease-vissza), background-color .2s;
 }
 .kis-vissza:active { transform: scale(.95); background: var(--felulet); }
 .haladas { display: flex; justify-content: center; align-items: center; gap: max(2.4vmin, 12px); }
@@ -150,7 +167,7 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 .pont {
   --pm: max(3.4vmin, 18px);
   position: relative; width: var(--pm); height: var(--pm); border-radius: 50%; flex: none;
-  background: var(--felulet); box-shadow: inset 0 0 0 max(.45vmin, 2px) color-mix(in srgb, var(--sotet) 35%, transparent);
+  background: var(--felulet); box-shadow: inset 0 0 0 max(.45vmin, 2px) var(--sotet-35);
   display: grid; place-items: center;
   transition: background-color .3s, box-shadow .3s, transform .35s var(--ease-vissza);
 }
@@ -158,10 +175,10 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 .pont.kesz::before { content: "✓"; color: #fff; font-size: calc(var(--pm) * .58); font-weight: 700; line-height: 1; }
 .pont.most { background: var(--sarga); box-shadow: inset 0 0 0 max(.5vmin, 2.5px) var(--sotet); transform: scale(1.35); }
 .pont.most::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 color-mix(in srgb, var(--sarga) 70%, transparent);
+  content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 var(--sarga-70);
   animation: pont-lukt 1.8s var(--ease) infinite;
 }
-@keyframes pont-lukt { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sarga) 70%, transparent); } 70%, 100% { box-shadow: 0 0 0 max(1.4vmin, 8px) transparent; } }
+@keyframes pont-lukt { 0% { box-shadow: 0 0 0 0 var(--sarga-70); } 70%, 100% { box-shadow: 0 0 0 max(1.4vmin, 8px) transparent; } }
 
 .jatek-ter { flex: 1; min-height: 0; position: relative; padding: 1.5vmin 0; }
 .jatek-ter > * { width: min(100%, 88vmin); height: min(100%, 112vmin); }
@@ -226,13 +243,13 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 .csuszka { -webkit-appearance: none; appearance: none; flex: 1; height: 12vmin; background: transparent; margin: 0; touch-action: pan-x; }
 .csuszka::-webkit-slider-runnable-track {
   height: 2.2vmin; border-radius: 99px;
-  background: linear-gradient(to right, var(--sarga) var(--kitoltes, 50%), color-mix(in srgb, var(--sotet) 14%, transparent) var(--kitoltes, 50%));
+  background: linear-gradient(to right, var(--sarga) var(--kitoltes, 50%), var(--sotet-14) var(--kitoltes, 50%));
 }
 .csuszka::-webkit-slider-thumb {
   -webkit-appearance: none; width: 8.5vmin; height: 8.5vmin; margin-top: -3.15vmin; border-radius: 50%;
   background: var(--felulet); border: .9vmin solid var(--sotet); box-shadow: 0 .8vmin 2vmin rgba(0,0,0,.15);
 }
-.csuszka::-moz-range-track { height: 2.2vmin; border-radius: 99px; background: color-mix(in srgb, var(--sotet) 14%, transparent); }
+.csuszka::-moz-range-track { height: 2.2vmin; border-radius: 99px; background: var(--sotet-14); }
 .csuszka::-moz-range-progress { height: 2.2vmin; border-radius: 99px; background: var(--sarga); }
 .csuszka::-moz-range-thumb { width: 7.5vmin; height: 7.5vmin; border-radius: 50%; background: var(--felulet); border: .9vmin solid var(--sotet); }
 .csuszka-hatarok { display: flex; justify-content: space-between; font-size: 2.8vmin; color: var(--halvany); padding: 0 max(14vmin, 75px); }
@@ -242,7 +259,7 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
   position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
   /* felül kihagyja a fejléc helyét, hogy a Home logó és a „vissza” gomb látszódjon */
   padding: calc(max(4vmin, env(safe-area-inset-top)) + max(7vmin, 44px) + 2vmin) var(--gutter) max(4vmin, env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--hatter) 88%, transparent);
+  background: var(--hatter-88);
 }
 .magyarazat-belso {
   width: min(100%, 96vmin); max-height: 100%; overflow: hidden;
@@ -318,7 +335,7 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 .jogi {
   --jf: max(12px, calc(2.2vmin * var(--z-skala, 1)));
   margin: 0; font-size: var(--jf); line-height: 1.45; max-width: 60ch; text-align: left;
-  position: relative; padding-left: calc(var(--jf) * 2.2); color: color-mix(in srgb, var(--sotet-szoveg) 75%, transparent);
+  position: relative; padding-left: calc(var(--jf) * 2.2); color: var(--sotet-szoveg-75);
 }
 .jogi::before {
   content: "i"; position: absolute; left: 0; top: calc(var(--jf) * .725 - var(--jf) * .7);
@@ -332,7 +349,7 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 /* ---------- TÉTLENSÉG ---------- */
 .tetlen {
   position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-  background: color-mix(in srgb, var(--sotet) 70%, transparent);
+  background: var(--sotet-70);
 }
 .tetlen-doboz {
   background: var(--felulet); color: var(--sotet); border-radius: var(--kerekites); padding: 6vmin; width: min(90vw, 76vmin);
@@ -380,7 +397,6 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 #kepernyo-zaro.aktiv .zaro-cim     { animation: beugrik .55s var(--ease-vissza) .15s both; transform-origin: 0 50%; }
 #kepernyo-zaro.aktiv .zaro-szoveg  { animation: felusz .5s var(--ease) .35s both; }
 #kepernyo-zaro.aktiv .qr-elem      { animation: felusz .5s var(--ease) calc(.5s + var(--i, 0) * .12s) both; }
-#kepernyo-zaro.aktiv #gomb-uj-kor  { animation: felusz .5s var(--ease) calc(.6s + var(--qr-db, 1) * .12s) both; }
 #kepernyo-zaro.aktiv .logo-sav     { animation: felusz .5s var(--ease) calc(.7s + var(--qr-db, 1) * .12s) both; }
 #kepernyo-zaro.aktiv .jogi         { animation: felusz .5s var(--ease) calc(.8s + var(--qr-db, 1) * .12s) both; }
 @media (orientation: portrait) { #kepernyo-zaro.aktiv .zaro-cim { transform-origin: 50% 50%; } }
@@ -401,10 +417,9 @@ h1 { font-family: var(--cim-betu); font-weight: 700; }
 
 /* ---------- ZÁRÓKÉPERNYŐ GOMBJAI ---------- */
 .zaro-gombok { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(2.4vmin * var(--z-skala, 1)); }
-.gomb-keret { background: transparent; color: var(--sotet-szoveg); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--sotet-szoveg) 70%, transparent); }
+.gomb-keret { background: transparent; color: var(--sotet-szoveg); box-shadow: inset 0 0 0 2px var(--sotet-szoveg-70); }
 #hirlevel-nyit-zaro { min-height: max(calc(11.5vmin * var(--z-skala, 1)), 48px); font-size: max(calc(3.2vmin * var(--z-skala, 1)), 16px); }
 #kepernyo-zaro.aktiv .zaro-gombok { animation: felusz .5s var(--ease) calc(.6s + var(--qr-db, 1) * .12s) both; }
-#kepernyo-zaro.aktiv #gomb-uj-kor { animation: none; }
 @media (orientation: landscape) { .zaro-gombok { justify-content: flex-start; } }
 
 /* ---------- HÍRLEVÉL-FELIRATKOZÁS – az alapítvány oldalának hírlevél-sávja alapján ---------- */

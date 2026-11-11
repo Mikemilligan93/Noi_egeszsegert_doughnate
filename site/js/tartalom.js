@@ -23,6 +23,12 @@
     teny_valtas_ido: [2, 120], tartalom_frissites: [1, 120]
   };
 
+  // Ha egy kulcs a táblázatból és a beépített alapból is hiányzik, ezzel fut a játék (különben NaN időzítés lenne).
+  const BEALLITAS_ALAP = {
+    kartyak_szama: 6, csuszkak_szama: 1, magyarazat_ido: 6, tetlenseg_ido: 20, tetlenseg_visszaszamlalas: 10,
+    zarokepernyo_ido: 45, teny_valtas_ido: 7, tartalom_frissites: 5
+  };
+
   /* --- segédek --- */
   function szam(s) {
     if (typeof s === "number") return isFinite(s) ? s : null;
@@ -33,11 +39,13 @@
   }
   const nagy = s => String(s || "").trim().toUpperCase();
   const aktiv = r => nagy(r.aktiv) === "IGEN";
+  // Ugyanaz az id kétszer: a második sort kihagyjuk (összekeverné a statisztikát és az ismétlés-kerülést).
+  const ismetlodo = (lattuk, id) => { if (lattuk.has(id)) return true; lattuk.add(id); return false; };
 
   /* --- fülenkénti ellenőrzés: { elemek, kihagyott:[{id,sor,ok}] } --- */
   const ellenoriz = {
     Kartyak(sorok) {
-      const elemek = [], kihagyott = [];
+      const elemek = [], kihagyott = [], lattuk = new Set();
       for (const r of sorok) {
         if (!aktiv(r)) continue;
         const tipus = String(r.tipus || "").trim().toLowerCase();
@@ -47,13 +55,14 @@
         else if (!r.allitas) ok = "hiányzó állítás";
         else if (!VALASZOK[tipus]) ok = "ismeretlen típus";
         else if (!VALASZOK[tipus].includes(valasz)) ok = "a helyes válasz nem illik a típushoz";
+        else if (ismetlodo(lattuk, r.id)) ok = "ismétlődő id";
         if (ok) { kihagyott.push({ ful: "Kartyak", id: r.id || "?", sor: r._sor, ok }); continue; }
         elemek.push({ id: r.id, tipus, allitas: r.allitas, helyes: valasz, magyarazat: r.magyarazat || "", forras: r.forras || "" });
       }
       return { elemek, kihagyott };
     },
     Csuszkak(sorok) {
-      const elemek = [], kihagyott = [];
+      const elemek = [], kihagyott = [], lattuk = new Set();
       for (const r of sorok) {
         if (!aktiv(r)) continue;
         const min = szam(r.min), max = szam(r.max), lepes = szam(r.lepes), helyes = szam(r.helyes_ertek);
@@ -64,6 +73,7 @@
         else if ([min, max, lepes, helyes, tures].some(v => v === null)) ok = "nem szám érték";
         else if (!(max > min) || !(lepes > 0) || tures < 0) ok = "hibás min/max/lépés/tűrés";
         else if (helyes < min || helyes > max) ok = "a helyes érték a min–max tartományon kívül esik";
+        else if (ismetlodo(lattuk, r.id)) ok = "ismétlődő id";
         if (ok) { kihagyott.push({ ful: "Csuszkak", id: r.id || "?", sor: r._sor, ok }); continue; }
         elemek.push({ id: r.id, tipus: "csuszka", kerdes: r.kerdes, min, max, lepes, helyes, tures,
           egyseg: r.mertekegyseg || "", magyarazat: r.magyarazat || "", forras: r.forras || "" });
@@ -71,10 +81,11 @@
       return { elemek, kihagyott };
     },
     Tenyek(sorok) {
-      const elemek = [], kihagyott = [];
+      const elemek = [], kihagyott = [], lattuk = new Set();
       for (const r of sorok) {
         if (!aktiv(r)) continue;
         if (!r.id || !r.szoveg) { kihagyott.push({ ful: "Tenyek", id: r.id || "?", sor: r._sor, ok: !r.id ? "hiányzó id" : "hiányzó szöveg" }); continue; }
+        if (ismetlodo(lattuk, r.id)) { kihagyott.push({ ful: "Tenyek", id: r.id, sor: r._sor, ok: "ismétlődő id" }); continue; }
         elemek.push({ id: r.id, kiemeles: r.kiemeles || "", szoveg: r.szoveg, forras: r.forras || "" });
       }
       return { elemek, kihagyott };
@@ -140,10 +151,14 @@
   const allapot = {};   // ful -> { elemek, kihagyott, forras: "tablazat"|"gyorsitotar"|"alap", ido }
   let utolsoProba = null, utolsoHiba = {};
 
+  const link = f => String((CFG.tablazat && CFG.tablazat[f]) || "").trim();
   function kezdoAllapot() {
     const c = cacheOlvas();
     for (const f of FULEK) {
-      if (c[f] && c[f].elemek) allapot[f] = { elemek: c[f].elemek, kihagyott: c[f].kihagyott || [], forras: "gyorsitotar", ido: c[f].ido };
+      // A gyorsítótár csak ahhoz a linkhez érvényes, amelyikről készült: ha a config.js-ből kivették vagy
+      // kicserélték a linket, nem a régi táblázat megjegyzett tartalma fut tovább, hanem a beépített alap.
+      const ervenyes = link(f) && c[f] && c[f].elemek && (!c[f].url || c[f].url === link(f));
+      if (ervenyes) allapot[f] = { elemek: c[f].elemek, kihagyott: c[f].kihagyott || [], forras: "gyorsitotar", ido: c[f].ido };
       else allapot[f] = Object.assign(alapFul(f), { forras: "alap", ido: null });
     }
   }
@@ -164,8 +179,9 @@
   async function frissit() {
     utolsoProba = new Date();
     const c = cacheOlvas();
+    let valtozott = false;
     await Promise.all(FULEK.map(async f => {
-      const url = (CFG.tablazat && CFG.tablazat[f]) || "";
+      const url = link(f);
       if (!url) return;
       try {
         const { fejlec, sorok } = window.DCSV.csvToObjects(await letolt(url));
@@ -175,14 +191,15 @@
         if (!elfogadhato(f, e)) throw new Error("nincs egyetlen érvényes, aktív sor sem");
         const ido = new Date().toISOString();
         allapot[f] = { elemek: e.elemek, kihagyott: e.kihagyott, forras: "tablazat", ido };
-        c[f] = { elemek: e.elemek, kihagyott: e.kihagyott, ido };
+        c[f] = { elemek: e.elemek, kihagyott: e.kihagyott, ido, url };
+        valtozott = true;
         delete utolsoHiba[f];
       } catch (err) {
         utolsoHiba[f] = String(err && err.message || err);
         if (allapot[f].forras === "tablazat") allapot[f].forras = "gyorsitotar";
       }
     }));
-    cacheIr(c);
+    if (valtozott) cacheIr(c);
   }
 
   /* --- a játék által használt, összefésült nézet --- */
@@ -208,7 +225,10 @@
 
   function aktualis() {
     const feliratok = Object.assign({}, KODBAN_ALAP_FELIRATOK, ALAP.Feliratok, allapot.Feliratok.elemek);
-    const beallitasok = Object.assign({}, ALAP.Beallitasok, allapot.Beallitasok.elemek);
+    const beallitasok = Object.assign({}, BEALLITAS_ALAP);
+    // a beépített alapból csak az érvényes számokat vesszük át
+    for (const k in BEALLITAS_HATAR) { const v = szam((ALAP.Beallitasok || {})[k]); if (v !== null && v >= BEALLITAS_HATAR[k][0] && v <= BEALLITAS_HATAR[k][1]) beallitasok[k] = v; }
+    Object.assign(beallitasok, allapot.Beallitasok.elemek);
     return {
       kartyak: allapot.Kartyak.elemek,
       csuszkak: allapot.Csuszkak.elemek,
@@ -226,7 +246,7 @@
       const db = Array.isArray(a.elemek) ? a.elemek.length + " elem" : Object.keys(a.elemek).length + " kulcs";
       const forras = { tablazat: "TÁBLÁZAT", gyorsitotar: "GYORSÍTÓTÁR", alap: "BEÉPÍTETT ALAP" }[a.forras];
       sorok.push(`${f.padEnd(12)} ${forras.padEnd(15)} ${db}` + (a.ido ? "  (" + new Date(a.ido).toLocaleString("hu-HU") + ")" : "") +
-        (!CFG.tablazat[f] ? "  [nincs link]" : "") + (utolsoHiba[f] ? "\n   ! " + utolsoHiba[f] : ""));
+        (!link(f) ? "  [nincs link]" : "") + (utolsoHiba[f] ? "\n   ! " + utolsoHiba[f] : ""));
       for (const k of a.kihagyott || []) sorok.push(`   kihagyva: ${k.id} (${k.sor}. sor) – ${k.ok}`);
     }
     return sorok.join("\n");
