@@ -21,7 +21,7 @@ window.DOUGHNATE_CONFIG = {
 
   /* 2. STATISZTIKA – az Apps Script „Webalkalmazás” URL-je (…/exec).
    * Üresen hagyva a játék nem küld statisztikát. */
-  statisztikaUrl: "",
+  statisztikaUrl: "https://script.google.com/macros/s/AKfycbzXtxmzn8GT99nfxIU2_9J-JRRXnmpVF3_QV3bVFUyh5g6dIumMSu1CDW9CLdHC3UEI/exec",
 
   /* 3. HÚZÁS IRÁNYA
    * "jobbra_igen": jobbra = Tény / Normális,  balra = Tévhit / Menj orvoshoz
