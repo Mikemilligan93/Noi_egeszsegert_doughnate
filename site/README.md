@@ -77,7 +77,7 @@ A kezdőképernyő jobb felső sarkából és a záróképernyőről nyílik egy
 - **Ha a Code.gs már telepítve volt**, a frissített kódot be kell másolni, és új verzióként telepíteni (lásd fent) – különben a feliratkozások nem kerülnek be.
 - **Internet nélkül** a feliratkozás a tableten vár, és visszatéréskor elmegy. Ha még nincs beállítva a `statisztikaUrl`, a feliratkozások akkor is megmaradnak a tableten, és a beállítás után elmennek (a diagnosztika mutatja, hány vár).
 - **A közös eszköz miatt** a mezők minden kilépéskor, sikeres beküldés után és tétlenségi visszaállásnál kiürülnek, és a böngésző nem ajánlja fel a korábban beírt címeket.
-- **A hozzájárulás és az adatkezelési tájékoztató szövege TERVEZET** – az alapítványnak kell pontosítania (adatkezelő, cél, megőrzés, leiratkozás). A szövegek a táblázat *Feliratok* fülén írhatók át, új sorokkal:
+- **A hozzájárulás és az adatkezelési tájékoztató szövege általános, alap jogi szöveg** (adatkezelő, cél, jogalap, megőrzés, leiratkozás, NAIH) – éles használat előtt az alapítványnak érdemes jóváhagynia, különösen a kapcsolati e-mail-címet (info@noiegeszsegert.hu). A szövegek a táblázat *Feliratok* fülén írhatók át, új sorokkal:
 
 | kulcs | hol jelenik meg |
 | --- | --- |
